@@ -1,123 +1,281 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Ultimate Fake Gambling Hub</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: #fff;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: #1f1f1f;
-    }
-    #money {
-      font-size: 1.2em;
-      font-weight: bold;
-    }
-    #money.positive { color: limegreen; }
-    #money.negative { color: red; }
-    #settings input { width: 60px; margin-left: 5px; }
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
-    .game {
-      background: #292929;
-      border-radius: 15px;
-      padding: 20px;
-      text-align: center;
-    }
-    canvas, .plinko-grid, .mines-grid {
-      margin-top: 20px;
-    }
-    .plinko-grid {
-      position: relative;
-      width: 180px;
-      height: 260px;
-      margin: 0 auto;
-      background: #1f1f1f;
-      border: 2px solid #444;
-      border-radius: 10px;
-    }
-    .plinko-peg {
-      width: 10px;
-      height: 10px;
-      background: #fff;
-      border-radius: 50%;
-      position: absolute;
-    }
-    .plinko-ball {
-      width: 15px;
-      height: 15px;
-      background: limegreen;
-      border-radius: 50%;
-      position: absolute;
-      z-index: 10;
-    }
-    .plinko-slot {
-      position: absolute;
-      bottom: 0;
-      width: 30px;
-      height: 30px;
-      line-height: 30px;
-      text-align: center;
-      font-size: 14px;
-      color: #000;
-      background: #eee;
-      border-radius: 5px;
-    }
-    .mines-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 50px);
-      gap: 5px;
-      justify-content: center;
-    }
-    .mine-cell {
-      width: 50px;
-      height: 50px;
-      background: #444;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .mine-cell.revealed { background: #666; }
-    .mine-cell.mine { background: red; }
-    button {
-      padding: 10px 20px;
-      font-weight: bold;
-      background: limegreen;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-<header>
-  <div id="money" class="positive">💰 $1000</div>
-  <div id="settings">Bet: <input type="number" id="betAmount" value="100" min="1"></div>
-</header>
-<main class="game-grid">
-  <div class="game"><h2>🎡 Spinner Wheel</h2><canvas id="wheelCanvas" width="300" height="300"></canvas><br><button onclick="spinWheel()">Spin</button></div>
-  <div class="game"><h2>🔽 Plinko</h2><button onclick="playPlinko()">Drop Ball</button><div class="plinko-grid" id="plinkoGrid"></div><div id="plinkoResult"></div></div>
-  <div class="game"><h2>💣 Mines</h2><button onclick="startMines()">Start Game</button><div class="mines-grid" id="minesGrid"></div><div id="minesResult"></div><button onclick="cashOutMines()">Cash Out</button></div>
-</main>
-<script>
-let money=1000;
-function updateMoney(){let m=document.getElementById('money');m.textContent=`💰 $${money}`;m.className=money>=0?'positive':'negative';}
-updateMoney();
-</script>
-</body></html>
+ <html lang="en">
+ <head>
+   <meta charset="UTF-8">
+   <title>Ultimate Fake Gambling Hub</title>
+   <style>
+     body {
+       margin: 0;
+       font-family: Arial, sans-serif;
+       background: #121212;
+       color: #fff;
+     }
+     header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 20px;
+       background: #1f1f1f;
+     }
+     #money {
+       font-size: 1.2em;
+       font-weight: bold;
+     }
+     #money.positive { color: limegreen; }
+     #money.negative { color: red; }
+     #settings input { width: 60px; margin-left: 5px; }
+     .game-grid {
+       display: grid;
+       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+       gap: 20px;
+       padding: 20px;
+     }
+     .game {
+       background: #292929;
+       border-radius: 15px;
+       padding: 20px;
+       text-align: center;
+     }
+     canvas, .plinko-grid {
+       margin-top: 20px;
+     }
+     .plinko-grid {
+       position: relative;
+       width: 180px;
+       height: 300px;
+       margin: 0 auto;
+       background: #1f1f1f;
+       border: 2px solid #444;
+       border-radius: 10px;
+       overflow: hidden;
+     }
+     .plinko-peg {
+       width: 8px;
+       height: 8px;
+       background: #ccc;
+       border-radius: 50%;
+       position: absolute;
+     }
+     .plinko-ball {
+       width: 16px;
+       height: 16px;
+       background: limegreen;
+       border-radius: 50%;
+       position: absolute;
+       transition: top 0.3s, left 0.3s;
+     }
+     button {
+       padding: 10px 20px;
+       font-weight: bold;
+       background: limegreen;
+       border: none;
+       border-radius: 10px;
+       cursor: pointer;
+       margin-top: 15px;
+     }
+     .notification {
+       margin-top: 10px;
+       font-weight: bold;
+     }
+     .slot-display {
+       display: flex;
+       justify-content: center;
+       font-size: 2em;
+       margin-top: 10px;
+     }
+     .slot-reel {
+       width: 50px;
+       height: 50px;
+       background: #222;
+       margin: 0 5px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       border-radius: 5px;
+     }
+   </style>
+ </head>
+ <body>
+ <header>
+   <div id="money" class="positive">💰 $1000</div>
+   <div id="settings">Bet: <input type="number" id="betAmount" value="100" min="1"></div>
+ </header>
+ 
+ <main class="game-grid">
+   <!-- Spinner Wheel -->
+   <div class="game">
+     <h2>🎡 Spinner Wheel</h2>
+     <canvas id="wheelCanvas" width="300" height="300"></canvas>
+     <button onclick="spinWheel()">Spin the Wheel</button>
+     <div id="wheelResult" class="notification"></div>
+   </div>
+ 
+   <!-- Plinko -->
+   <div class="game">
+     <h2>🔽 Plinko</h2>
+     <div class="plinko-grid" id="plinkoGrid"></div>
+     <button onclick="playPlinko()">Drop Ball</button>
+     <div id="plinkoResult" class="notification"></div>
+   </div>
+ 
+   <!-- Slot Machine -->
+   <div class="game">
+     <h2>🎰 Slot Machine</h2>
+     <div class="slot-display" id="slotDisplay">
+       <div class="slot-reel">🍒</div>
+       <div class="slot-reel">🍋</div>
+       <div class="slot-reel">🔔</div>
+     </div>
+     <button onclick="spinSlots()">Spin Slots</button>
+     <div id="slotResult" class="notification"></div>
+   </div>
+ </main>
+ 
+ <script>
+ let money = 1000;
+ const betInput = document.getElementById("betAmount");
+ function updateMoneyDisplay() {
+   const moneyDiv = document.getElementById("money");
+   moneyDiv.textContent = `💰 $${money}`;
+   moneyDiv.className = money >= 0 ? 'positive' : 'negative';
+ }
+ updateMoneyDisplay();
+ 
+ //// Spinner Wheel
+ const wheelSegments = [0.5, 1, 1.5, 2, 2.5, 0, 3, 0.75, 1.25];
+ const wheelColors = ["#ff5252", "#ffa726", "#ffee58", "#66bb6a", "#42a5f5", "#ab47bc", "#ef5350", "#26c6da", "#7e57c2"];
+ const wheelCanvas = document.getElementById("wheelCanvas");
+ const ctx = wheelCanvas.getContext("2d");
+ const radius = 150;
+ let angle = 0, spinning = false;
+ function drawWheel() {
+   const arc = (2 * Math.PI) / wheelSegments.length;
+   ctx.clearRect(0, 0, 300, 300);
+   for (let i = 0; i < wheelSegments.length; i++) {
+     const start = angle + i * arc;
+     ctx.beginPath();
+     ctx.moveTo(radius, radius);
+     ctx.arc(radius, radius, radius, start, start + arc);
+     ctx.fillStyle = wheelColors[i];
+     ctx.fill();
+     ctx.fillStyle = "#fff";
+     ctx.font = "14px Arial";
+     ctx.textAlign = "center";
+     ctx.save();
+     ctx.translate(radius, radius);
+     ctx.rotate(start + arc / 2);
+     ctx.fillText(`${wheelSegments[i]}x`, radius - 50, 5);
+     ctx.restore();
+   }
+   // Arrow
+   ctx.beginPath();
+   ctx.moveTo(radius, 5);
+   ctx.lineTo(radius - 10, 25);
+   ctx.lineTo(radius + 10, 25);
+   ctx.fillStyle = "#fff";
+   ctx.fill();
+ }
+ function spinWheel() {
+   const bet = parseInt(betInput.value);
+   if (bet > money) return;
+   money -= bet;
+   updateMoneyDisplay();
+   if (spinning) return;
+   spinning = true;
+   const spinAngle = Math.random() * 360 + 720;
+   const duration = 3000;
+   const start = performance.now();
+   function animate(now) {
+     let elapsed = now - start;
+     let progress = Math.min(elapsed / duration, 1);
+     let easeOut = 1 - Math.pow(1 - progress, 3);
+     angle = ((spinAngle * easeOut) * Math.PI / 180) % (2 * Math.PI);
+     drawWheel();
+     if (progress < 1) requestAnimationFrame(animate);
+     else finishSpin(spinAngle);
+   }
+   requestAnimationFrame(animate);
+ }
+ function finishSpin(deg) {
+   const arc = 360 / wheelSegments.length;
+   const normalizedDeg = deg % 360;
+   const index = Math.floor((360 - normalizedDeg + arc / 2) % 360 / arc);
+   const multiplier = wheelSegments[index];
+   const bet = parseInt(betInput.value);
+   const win = Math.floor(bet * multiplier);
+   money += win;
+   document.getElementById("wheelResult").textContent = `Result: x${multiplier} → $${win}`;
+   updateMoneyDisplay();
+   spinning = false;
+ }
+ drawWheel();
+ 
+ //// Plinko
+ function playPlinko() {
+   const bet = parseInt(betInput.value);
+   if (bet > money) return;
+   money -= bet;
+   updateMoneyDisplay();
+   const grid = document.getElementById("plinkoGrid");
+   grid.innerHTML = "";
+   // Add pegs
+   for (let y = 30; y < 250; y += 30) {
+     for (let x = (y % 60 === 0) ? 20 : 40; x < 160; x += 40) {
+       const peg = document.createElement("div");
+       peg.className = "plinko-peg";
+       peg.style.left = `${x}px`;
+       peg.style.top = `${y}px`;
+       grid.appendChild(peg);
+     }
+   }
+   const ball = document.createElement("div");
+   ball.className = "plinko-ball";
+   ball.style.left = "80px";
+   ball.style.top = "0px";
+   grid.appendChild(ball);
+   let posX = 80, posY = 0;
+   const slots = [0.5, 1, 1.5, 2, 3];
+   function drop() {
+     if (posY >= 270) {
+       const slot = Math.min(Math.max(Math.floor(posX / 32), 0), slots.length - 1);
+       const multiplier = slots[slot];
+       const win = Math.floor(bet * multiplier);
+       money += win;
+       document.getElementById("plinkoResult").textContent = `Result: x${multiplier} → $${win}`;
+       updateMoneyDisplay();
+       return;
+     }
+     posY += 30;
+     posX += (Math.random() > 0.5 ? 15 : -15);
+     posX = Math.max(0, Math.min(160, posX));
+     ball.style.top = `${posY}px`;
+     ball.style.left = `${posX}px`;
+     setTimeout(drop, 300);
+   }
+   drop();
+ }
+ 
+ //// Slot Machine
+ function spinSlots() {
+   const bet = parseInt(betInput.value);
+   if (bet > money) return;
+   money -= bet;
+   updateMoneyDisplay();
+   const icons = ["🍒", "🍋", "🔔", "🍀"];
+   const reels = document.querySelectorAll(".slot-reel");
+   let results = [];
+   reels.forEach((reel, i) => {
+     const icon = icons[Math.floor(Math.random() * icons.length)];
+     reel.textContent = icon;
+     results.push(icon);
+   });
+   let payout = 0;
+   if (results.every(i => i === results[0])) payout = bet * 5;
+   else if (new Set(results).size === 2) payout = bet * 2;
+   money += payout;
+   document.getElementById("slotResult").textContent = payout ? `Win: $${payout}` : "No win";
+   updateMoneyDisplay();
+ }
+ </script>
+ </body>
+ </html>
